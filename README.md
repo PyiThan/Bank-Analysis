@@ -3,6 +3,8 @@ A Data-Driven Approach to Predict the Success of Bank Telemarketing
 
 <img src="./Image/SFSU Image.jpeg" width="300" height="200">
 
+<a href="https://github.com/PyiThan/Bank-Analysis/tree/main/projectReport" style="color: blue:">Click to see the full project report</a>
+
 ## Executive Summary
 
 This document outlines our approach to help a Portuguese bank overcome its challenges in effectively advertising its ‘bank term deposit’ service. Through the use of machine learning techniques, we are confident in our ability to predict which individuals are most likely to subscribe to this service based on various factors in a dataset. Our project involves identifying the most effective ML model for predicting responses and ensuring that our phone call campaigns are personalized and targeted toward the proper audience. 
@@ -16,19 +18,27 @@ The dataset, acquired from the University of California, Irvine Repository, from
 
 The data utilized in this project is sourced from the UCI Repository, specifically from the Bank Marketing Data Set. This dataset comprises 45,211 observations including 17 columns.
 
-## Proposed Solution
+## Data Science Projects :octocat::
+- Design, Analysis, and Experimentation
+- Descriptive, Predictive, and Prescriptive Analytics
+- Forecasting
+- Machine Learning
 
-### ROC curve
+## Programming Language use :book::
 
-<img src="./Image/ROCcurve.png">
+- R
+<p align="left">
 
-### Accuracy and AUC score of different cutoff points
+<!-- For more icons please follow  https://github.com/MikeCodesDotNET/ColoredBadges -->
+  <a href="#">
+    <img 
+src="https://raw.githubusercontent.com/MikeCodesDotNET/ColoredBadges/master/svg/dev/languages/r.svg" alt="r" style="vertical-align:top; margin:4px">
+  </a>
+  
+  <a href="#">
+    <img 
+</p>
 
-<img src="./Image/results.png">
-
-Based on the results, it can be confidently concluded that Logistic Regression with Logit link is a more suitable choice as it improves model accuracy and AUC score compared to Logistic regression with Prob link. This improvement is a clear indication of the effectiveness of the Logit link in enhancing the model's performance.
-
-[click to see the project](https://github.com/PyiThan/Bank-Analysis/tree/main/projectReport)
 
 ## Acknowledgments
 
