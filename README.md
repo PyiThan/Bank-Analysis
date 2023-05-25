@@ -28,4 +28,4 @@ The data utilized in this project is sourced from the UCI Repository, specifical
 
 Based on the results, it can be confidently concluded that Logistic Regression with Logit link is a more suitable choice as it improves model accuracy and AUC score compared to Logistic regression with Prob link. This improvement is a clear indication of the effectiveness of the Logit link in enhancing the model's performance.
 
-[click to see the project](https://github.com/PyiThan/Bank-Analysis/projectReport)
+[click to see the project](https://github.com/PyiThan/Bank-Analysis/tree/main/projectReport)
