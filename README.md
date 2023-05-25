@@ -1,7 +1,7 @@
 # Bank-Analysis
 A Data-Driven Approach to Predict the Success of Bank Telemarketing
 
-<img src="./Image/SFSU Image.jpeg",width="300" height="200">
+<img src="./Image/SFSU Image.jpeg" width="300" height="200">
 
 ## Executive Summary
 
@@ -24,7 +24,7 @@ The data utilized in this project is sourced from the UCI Repository, specifical
 
 ### Accuracy and AUC score of different cutoff points
 
-<img src="./Image/.results.png">
+<img src="./Image/results.png">
 
 Based on the results, it can be confidently concluded that Logistic Regression with Logit link is a more suitable choice as it improves model accuracy and AUC score compared to Logistic regression with Prob link. This improvement is a clear indication of the effectiveness of the Logit link in enhancing the model's performance.
 
