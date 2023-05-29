@@ -8,9 +8,7 @@ date: "2023-05-08"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Question 1
-
-### Load the library
+## Load the library
 
 ```{r,echo=FALSE,results="hide",warning=FALSE,message=FALSE}
 library(dplyr)
@@ -36,9 +34,10 @@ library(Epi)
 library(ROSE)
 library(png)
 library(tibble)
+library(pROC)
 ```
 
-### load the dataset
+### Load the dataset
 
 ```{r}
 Bank=read.csv("~/Desktop/SFSU/math449Project/bank.csv",header=TRUE,sep=";")
@@ -50,13 +49,13 @@ Bank=read.csv("~/Desktop/SFSU/math449Project/bank.csv",header=TRUE,sep=";")
 head(Bank)
 ```
 
-### to see the data type of Bank.csv
+### To see the data type of Bank.csv
 
 ```{r}
 str(Bank)
 ```
 
-### correlatin between numeric predictors variable
+### Correlatin between numeric predictors variable
 
 ```{r}
 BankNumeric=select_if(Bank,is.integer)
@@ -66,14 +65,14 @@ corrplot(corMatrix,type="upper",method="color",tl.col="black",t1.srt=45)
 
 The correlation coefficients between all pairs of predictor variables in the model are less than 0.5. Thus, we don't need to worry about multicollinearity in this problem.
 
-### value counts for response variable
+### Value counts for response variable
 
 ```{r}
 countsY=table(Bank$y)
 barplot(countsY,main="Frequency for response variable Y",xlab="Customer Subsribe the term Deposit",ylab="Frequency")
 ```
 
-### compute the percentage of yes and no
+### Compute the percentage of yes and no
 
 ```{r}
 percentageYes=countsY[2] / nrow(Bank) * 100
@@ -100,7 +99,7 @@ table(Bank$y)
 
 Now, the response variable is balanced.
 
-### convert the non numeric vairables into factor
+### Convert the non numeric vairables into factor
 
 ```{r}
 Bank$job=as.factor(Bank$job)
@@ -114,16 +113,17 @@ Bank$month=as.factor(Bank$month)
 Bank$poutcome=as.factor(Bank$poutcome)
 Bank$y=as.factor(Bank$y)
 ```
-### Creating training and testing data
+
+### Creating training and testing data from the original data
 
 ```{r}
 trainFull = sample(dim(Bank)[1], dim(Bank)[1]*0.8)
-testFull=-train
+testFull=-trainFull
 Bank.fullTest=Bank[testFull,]
 Bank.fullTrain=Bank[trainFull,]
 ```
 
-### Fit a logistic regression model with all predictors
+## (1) Fit a logistic regression model with all predictors
 
 ```{r}
 library(caret)
@@ -135,80 +135,43 @@ predictions=predict(fullBankFit,newdata = Bank.fullTest,type="prob")
 binaryPreds=ifelse(predictions[,2]>0.5,1,0)
 binaryPredsfactor=factor(binaryPreds,levels=c(0,1),ordered=TRUE)
 ```
-### confusion matrix
 
-### Define a function to create the confusion table for a given cutoff point
-
-```{r}
-create_confusion_table1 <- function(cutoff) {
-  predicted_labels <-  binaryPredsfactor
-  
-  confusion <- confusionMatrix(table(predicted_labels, Bank.fullTest$y))
-  
-  return(confusion)
-}
-```
-
-### Specify the cutoff points
+### Confusion matrix
 
 ```{r}
-cutoffPoints=c(0.4,0.5,0.8)
+cm=confusionMatrix(Bank.fullTest$y,binaryPredsfactor)
+cm
+confusionTable=cm$table
 ```
 
-### create confusion tables for each cutoff point
+### Calculate accuracy sensitivity, specificity.
 
 ```{r}
-confusionTables1=lapply(cutoffPoints,create_confusion_table1)
+#accuracy
+accuracy=cm$overall[1]
+#true positive rate
+sensitivity=cm$byClass[1]
+#true negative rate
+specificity=cm$byClass[2]
+#mis classification
+misclassificationRate=round(1-cm$overall[1],2)
+cat("Misclassification Rate",misclassificationRate,"\n")
 ```
 
-### Print the confusion tables logistic regression
-
-```{r}
-for (i in seq_along(confusionTables1)) {
-  cat("Cutoff:", cutoffPoints[i], "\n")
-  print(confusionTables1[[i]])
-  cat("\n")
-}
-
-```
 ### ROC curve
 
 ```{r}
-plot(NULL, xlim = c(0, 1), ylim = c(0, 1), xlab = "False Positive Rate", ylab = "True Positive Rate")
-for (cutoff in cutoffPoints) {
-  predicted_labels <- binaryPredsfactor # Assign predicted labels
-  
-  roc_obj <- roc(Bank.fullTest$y, predicted_labels)  # Create ROC curve object
-  
-  auc <- auc(roc_obj)  # Calculate AUC
-  
-  # Plot the ROC curve with label and AUC
-  plot(roc_obj, add = TRUE, col = rainbow(length(cutoffPoints))[cutoffPoints == cutoff])
- # Determine the label position based on the cutoff point
-  if (cutoff == 0.4) {
-    text(0.5, 0.5, paste("Cutoff:", cutoff, "  AUC:", round(auc, 2)), col = rainbow(length(cutoffPoints))[cutoffPoints == cutoff])
-  } else if (cutoff == 0.5) {
-    text(0.3, 0.8, paste("Cutoff:", cutoff, "  AUC:", round(auc, 2)), col = rainbow(length(cutoffPoints))[cutoffPoints == cutoff])
-  } else if (cutoff == 0.8) {
-    text(0.7, 0.3, paste("Cutoff:", cutoff, "  AUC:", round(auc, 2)), col = rainbow(length(cutoffPoints))[cutoffPoints == cutoff])
-  }
-}
-
-# Add legend
-legend("bottomright", legend = cutoffPoints, title = "Cutoff", col = rainbow(length(cutoffPoints)), lwd = 1)
-
-# Add a diagonal reference line
-abline(a = 0, b = 1, lty = 2)
-
-# Add a title
-title(main = "ROC Curve for different cut off points")
+rocObj=roc(Bank.fullTest$y,binaryPredsfactor)
+auc=auc(rocObj)
+print(auc)
+plot(rocObj,main="ROC curve",xlab="False Positive Rate",ylab="True Positive Rate",print.auc=TRUE,print.auc.x=0.5,print.auc.y=0.2)
+abline(a=0,b=1,lty=2)
 ```
-
-# Question 3
 
 ### Backward elimination
 
 ```{r}
+fullBank=glm(y~.,data=Bank,family=binomial)
 library(caret)
 backwardsModel=step(
   object=fullBank,
@@ -253,9 +216,7 @@ newBank.test=newBank[test,]
 newBank.train=newBank[train,]
 ```
 
-# Question 4
-
-### Fit the logistic regression model with selected features using k-fold cross-validation.
+## (2)Fit the logistic regression model with selected features using k-fold cross-validation.
 
 ```{r}
 library(caret)
@@ -269,107 +230,114 @@ binaryPreds2=ifelse(predictions2[,2]>0.5,1,0)
 binaryPredsfactor2=factor(binaryPreds2,levels=c(0,1),ordered=TRUE)
 ```
 
-# Question 5
-
-### Logistic regression(logit link) confusion matrix
-
-### Define a function to create the confusion table for a given cutoff point
+### Confusion matrix for logit link
 
 ```{r}
-create_confusion_table <- function(cutoff) {
-  predicted_labels <-  binaryPredsfactor2
-  
-  confusion <- confusionMatrix(table(predicted_labels, newBank.test$y))
-  
-  return(confusion)
-}
+cm2=confusionMatrix(newBank.test$y,binaryPredsfactor2)
+confusionTable2=cm2$table
 ```
 
-### Specify the cutoff points
+### Calculate accuracy sensitivity, specificity.
 
 ```{r}
-cutoffPoints=c(0.4,0.5,0.8)
+#accuracy
+accuracy2=cm2$overall[1]
+cat("Accuracy:",accuracy2,"\n")
+#true positive rate
+sensitivity2=cm2$byClass[1]
+cat("Sensitivity:",sensitivity2,"\n")
+#true negative rate
+specificity2=cm2$byClass[2]
+cat("Specificity",specificity2,"\n")
+#mis classification
+misclassificationRate2=round(1-cm2$overall[1],2)
+cat("Misclassification Rate",misclassificationRate2,"\n")
 ```
 
-### create confusion tables for each cutoff point
+### ROC curve
 
 ```{r}
-confusionTables=lapply(cutoffPoints,create_confusion_table)
+rocObj2=roc(newBank.test$y,binaryPredsfactor2)
+auc2=auc(rocObj2)
+print(auc2)
+plot(rocObj2,main="ROC curve",xlab="False Positive Rate",ylab="True Positive Rate",print.auc=TRUE,print.auc.x=0.5,print.auc.y=0.2)
+abline(a=0,b=1,lty=2)
 ```
-
-### Print the confusion tables logistic regression
+## (3) Fit the model using random Forest machine learning model
 
 ```{r}
-for (i in seq_along(confusionTables)) {
-  cat("Cutoff:", cutoffPoints[i], "\n")
-  print(confusionTables[[i]])
-  cat("\n")
-}
+random.fit=train(y~.,data=newBank.train,method="rf",trControl=fitControl2)
+prediction3=predict(random.fit,newdata=newBank.test,type="prob")
+binaryPreds3=ifelse(prediction3[,2]>0.5,1,0)
+binaryPredsfactor3=factor(binaryPreds3,levels=c(0,1),ordered=TRUE)
 ```
-
-### logistic regression(logit link) ROC curve
+### Confusion Matrix
 
 ```{r}
-plot(NULL, xlim = c(0, 1), ylim = c(0, 1), xlab = "False Positive Rate", ylab = "True Positive Rate")
-for (cutoff in cutoffPoints) {
-  predicted_labels <- binaryPredsfactor2 # Assign predicted labels
-  
-  roc_obj <- roc(newBank.test$y, predicted_labels)  # Create ROC curve object
-  
-  auc <- auc(roc_obj)  # Calculate AUC
-  
-  # Plot the ROC curve with label and AUC
-  plot(roc_obj, add = TRUE, col = rainbow(length(cutoffPoints))[cutoffPoints == cutoff])
- # Determine the label position based on the cutoff point
-  if (cutoff == 0.4) {
-    text(0.5, 0.5, paste("Cutoff:", cutoff, "  AUC:", round(auc, 2)), col = rainbow(length(cutoffPoints))[cutoffPoints == cutoff])
-  } else if (cutoff == 0.5) {
-    text(0.3, 0.8, paste("Cutoff:", cutoff, "  AUC:", round(auc, 2)), col = rainbow(length(cutoffPoints))[cutoffPoints == cutoff])
-  } else if (cutoff == 0.8) {
-    text(0.7, 0.3, paste("Cutoff:", cutoff, "  AUC:", round(auc, 2)), col = rainbow(length(cutoffPoints))[cutoffPoints == cutoff])
-  }
-}
-
-# Add legend
-legend("bottomright", legend = cutoffPoints, title = "Cutoff", col = rainbow(length(cutoffPoints)), lwd = 1)
-
-# Add a diagonal reference line
-abline(a = 0, b = 1, lty = 2)
-
-# Add a title
-title(main = "ROC Curve for Different Cutoff Points")
+cm3=confusionMatrix(binaryPredsfactor3,newBank.test$y)
+cm3
+confusionTable3=cm3$table
 ```
-
-
-### logistic regression ROC curve
+### Calculate accuracy sensitivity, specificity.
 
 ```{r}
-plot(NULL, xlim = c(0, 1), ylim = c(0, 1), xlab = "False Positive Rate", ylab = "True Positive Rate")
-for (cutoff in cutoffPoints) {
-  predicted_labels <- binaryPredsfactor3 # Assign predicted labels
-  
-  roc_obj2 <- roc(newBank.test$y, predicted_labels)  # Create ROC curve object
-  
-  auc <- auc(roc_obj2)  # Calculate AUC
-  
-  # Plot the ROC curve with label and AUC
-  plot(roc_obj2, add = TRUE, col = rainbow(length(cutoffPoints))[cutoffPoints == cutoff])
- # Determine the label position based on the cutoff point
-  if (cutoff == 0.4) {
-    text(0.5, 0.5, paste("Cutoff:", cutoff, "  AUC:", round(auc, 2)), col = rainbow(length(cutoffPoints))[cutoffPoints == cutoff])
-  } else if (cutoff == 0.5) {
-    text(0.3, 0.8, paste("Cutoff:", cutoff, "  AUC:", round(auc, 2)), col = rainbow(length(cutoffPoints))[cutoffPoints == cutoff])
-  } else if (cutoff == 0.8) {
-    text(0.7, 0.3, paste("Cutoff:", cutoff, "  AUC:", round(auc, 2)), col = rainbow(length(cutoffPoints))[cutoffPoints == cutoff])
-  }
-}
-
-# Add legend
-legend("bottomright", legend = cutoffPoints, title = "Cutoff", col = rainbow(length(cutoffPoints)), lwd = 1)
-
-# Add a diagonal reference line
-abline(a = 0, b = 1, lty = 2)
-
-# Add a title
-title(main = "ROC Curve for Different Cutoff Points")
+#accuracy
+accuracy3=cm3$overall[1]
+cat("Accuracy:",accuracy3,"\n")
+#true positive rate
+sensitivity3=cm3$byClass[1]
+cat("Sensitivity:",sensitivity3,"\n")
+#true negative rate
+specificity3=cm3$byClass[2]
+cat("Specificity:",specificity3,"\n")
+#mis classification
+misclassificationRate3=1-accuracy3
+cat("Misclassification Rate:",misclassificationRate3,"\n")
 ```
+### Roc curve
+
+```{r,warning=FALSE}
+rocObj3=roc(newBank.test$y,binaryPredsfactor3)
+auc3=auc(rocObj3)
+print(auc3)
+plot(rocObj3,main="ROC curve",xlab="False Positive Rate",ylab="True Positive Rate",print.auc=TRUE,print.auc.x=0.5,print.auc.y=0.2)
+abline(a=0,b=1,lty=2)
+```
+## (4) Fit the model using Naive Bayes
+
+```{r}
+naiveBayesFit=train(y~.,data=newBank.train,method="naive_bayes",trControl=fitControl2)
+predictions4=predict(naiveBayesFit,newdata=newBank.test)
+```
+### Confusion Matrix
+
+```{r}
+cm4=confusionMatrix(data=predictions4,newBank.test$y)
+cm4
+confusionTable4=cm4$table
+```
+### Calculate accuracy sensitivity, specificity.
+
+```{r}
+#accuracy
+accuracy4=cm4$overall[1]
+cat("Accuracy:",accuracy4,"\n")
+#true positive rate
+sensitivity4=cm4$byClass[1]
+cat("Sensitivity:",sensitivity4,"\n")
+#true negative rate
+specificity4=cm4$byClass[2]
+cat("Specificity:",specificity4,"\n")
+#mis classification
+misclassificationRate4=1-accuracy4
+cat("Misclassification Rate:",misclassificationRate4,"\n")
+```
+### Roc curve
+
+```{r,warning=FALSE}
+response4=as.numeric(newBank.test$y)-1
+predictor4=as.numeric(predictions4)-1
+rocObj4=roc(response4,predictor4)
+plot(rocObj4,print.auc=TRUE,print.auc.x=0.5,print.auc.y=0.2)
+```
+
