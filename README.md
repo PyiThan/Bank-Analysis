@@ -18,6 +18,12 @@ The dataset, acquired from the University of California, Irvine Repository, from
 
 The data utilized in this project is sourced from the UCI Repository, specifically from the Bank Marketing Data Set. This dataset comprises 45,211 observations including 17 columns.
 
+## Bank Analysis Dashboard
+
+<img src="./Image/Bank Analysis Dashboard.png">
+
+<a href="https://public.tableau.com/app/profile/pyi.than97/viz/BankAnalysis_16856416970940/BankAnalysisDashboard" style="color: blue:">Click to see the dashboard in Tableau public/a>
+
 ## Data Science Projects :octocat::
 - Design, Analysis, and Experimentation
 - Descriptive, Predictive, and Prescriptive Analytics
